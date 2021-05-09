@@ -1,43 +1,68 @@
-import './style/style.scss';
-import {input, buttonOk, buttonSave, buttonOpenSave, ul, arr} from './variables';
+import './style.scss';
 
+let ul = document.querySelector('ul');
+let completed = document.querySelector('.completed');
+let notCompleted = document.querySelector('.notCompleted');
+let todos;
 
-buttonOk.onclick = function() {
-    const li = document.createElement('li');
-    li.innerHTML = input.value;
-    arr.push(input.value);
-    console.log(arr);
-    ul.append(li);
-    li.onclick = function () {
-        let isClicked = li.getAttribute('clicked');
-        if(!isClicked) {
-            li.setAttribute('clicked', true);
-            li.style.textDecoration = 'line-through';
-        } else {
-            li.removeAttribute('clicked');
-            li.style.textDecoration = 'none';
-        }
-    }
-    const button = document.createElement('button');
-    button.innerHTML = 'delete';
-    li.after(button);
-    button.onclick = function () {
-        arr.splice(arr.indexOf(li.innerText), 1);
-        console.log(arr);
-        li.remove();
-        button.remove();
-    }
-    input.value = "";
+const fetchTodos = () => {
+    return fetch('https://jsonplaceholder.typicode.com/todos')
+        .then(response => response.json())
+        .then(json => todos = json);
 }
 
-buttonSave.onclick = function() {
-    localStorage.setItem('list', JSON.stringify(arr));
-}
-
-buttonOpenSave.onclick = function() {
-    for (let i= 0; i < JSON.parse(localStorage.getItem('list')).length; i++) {
-        let saveLi = document.createElement('li');
-        saveLi.innerHTML = JSON.parse(localStorage.getItem('list'))[i];
-        ul.append(saveLi);
+const getTodos  = async () => {
+    await fetchTodos();
+    completed.onclick = () => {
+        ul.innerHTML = '';
+        todos.forEach(element => {
+            if(element.completed) {
+                let checkbox = document.createElement('input');
+                checkbox.setAttribute('type', 'checkbox');
+                let span = document.createElement('span');
+                let li = document.createElement('li');
+                span.innerHTML = element.title;
+                ul.append(li);
+                li.before(checkbox);
+                li.before(span);
+                console.log(checkbox.checked);
+                checkbox.onclick = function () {
+                    if(checkbox.checked) {
+                        span.style.backgroundColor = 'red';
+                        console.log('check');
+                    } else {
+                        span.style.backgroundColor = '';
+                        console.log('No check');
+                    }
+                }
+            }
+        });
+    }
+    notCompleted.onclick = () => {
+        ul.innerHTML = '';
+        todos.forEach(element => {
+            if(!element.completed) {
+                let li = document.createElement('li');
+                li.innerHTML = `&#9734 ${element.title}`;
+                ul.prepend(li);
+                li.onclick = function () {
+                    let isClicked = li.getAttribute('clicked');
+                    if(!isClicked) {
+                        li.setAttribute('clicked', true);
+                        li.innerHTML = `&#9733 ${element.title}`;
+                        li.style.color = 'yellow';
+                    } else {
+                        li.removeAttribute('clicked');
+                        li.innerHTML = `&#9734 ${element.title}`;
+                        li.style.color = 'black';
+                    }
+                }
+            }
+        });
     }
 }
+
+getTodos();
+
+
+
